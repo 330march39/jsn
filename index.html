@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>情報処理入門クイズ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Tone.js library for sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <style>
+        /* CSS Variables for Theming */
+        :root {
+            /* Light Mode Default Colors */
+            --bg-primary: #f0f9ff;
+            --bg-secondary: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --button-bg-default: #f1f5f9;
+            --button-text-default: #334155;
+            --button-border-default: #cbd5e1;
+            --nav-button-bg: #0ea5e9;
+            --nav-button-hover-bg: #0284c7;
+            --nav-button-shadow: rgba(14, 165, 233, 0.3);
+            --start-button-bg: #10b981;
+            --start-button-hover-bg: #059669;
+            --start-button-shadow: rgba(16, 185, 129, 0.3);
+            --interrupt-button-bg: #ef4444;
+            --interrupt-button-hover-bg: #dc2626;
+            --interrupt-button-shadow: rgba(239, 68, 68, 0.3);
+            --progress-bar-bg: #0ea5e9;
+            --feedback-bg: #f8fafc;
+            --feedback-border: #e2e8f0;
+            --correct-feedback-text: #15803d;
+            --correct-feedback-border: #22c55e;
+            --incorrect-feedback-text: #b91c1c;
+            --incorrect-feedback-border: #ef4444;
+            --correct-option-bg: #dcfce7;
+            --incorrect-option-bg: #fee2e2;
+            --score-color: #0c4a6e;
+            --score-comment-color: #0369a1;
+            --settings-button-bg: #6366f1;
+            --settings-button-hover-bg: #4f46e5;
+            --settings-button-shadow: rgba(99, 102, 241, 0.3);
+        }
+
+        /* Dark Mode Colors */
+        body.dark-mode {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --button-bg-default: #334155;
+            --button-text-default: #e2e8f0;
+            --button-border-default: #475569;
+            --nav-button-bg: #38bdf8;
+            --nav-button-hover-bg: #0ea5e9;
+            --nav-button-shadow: rgba(56, 189, 248, 0.3);
+            --start-button-bg: #2dd4bf;
+            --start-button-hover-bg: #14b8a6;
+            --start-button-shadow: rgba(45, 212, 191, 0.3);
+            --interrupt-button-bg: #f87171;
+            --interrupt-button-hover-bg: #ef4444;
+            --interrupt-button-shadow: rgba(248, 113, 113, 0.3);
+            --progress-bar-bg: #38bdf8;
+            --feedback-bg: #334155;
+            --feedback-border: #475569;
+            --correct-feedback-text: #a7f3d0;
+            --correct-feedback-border: #4ade80;
+            --incorrect-feedback-text: #fecaca;
+            --incorrect-feedback-border: #f87171;
+            --correct-option-bg: #14532d;
+            --incorrect-option-bg: #7f1d1d;
+            --score-color: #e0f2fe;
+            --score-comment-color: #7dd3fc;
+            --settings-button-bg: #818cf8;
+            --settings-button-hover-bg: #6366f1;
+            --settings-button-shadow: rgba(129, 140, 248, 0.3);
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+            transition: background-color 0.3s ease;
+        }
+        .container {
+            background-color: var(--bg-secondary);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+            padding: 25px;
+            padding-top: 50px;
+            width: 100%;
+            max-width: 700px; /* Increased width */
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+            z-index: 1;
+            transition: background-color 0.3s ease;
+        }
+        .screen {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .screen.active {
+            display: flex;
+        }
+        .question-area {
+            min-height: 150px; /* Increased height */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--feedback-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+            transition: background-color 0.3s ease;
+            text-align: left;
+        }
+        .question-text {
+            font-size: 1.25rem; /* Adjusted font size */
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            transition: color 0.3s ease;
+            width: 100%;
+        }
+        .question-text table {
+            width: auto;
+            margin: 15px auto;
+            border-collapse: collapse;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        .question-text th, .question-text td {
+            border: 1px solid var(--button-border-default);
+            padding: 8px;
+            text-align: center;
+        }
+        .question-text th {
+            background-color: var(--button-bg-default);
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        .option-button {
+            background-color: var(--button-bg-default);
+            color: var(--button-text-default);
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid var(--button-border-default);
+            text-align: left;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            line-height: 1.5;
+        }
+        .option-button:hover {
+            background-color: var(--button-border-default);
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+        }
+        .option-button.correct {
+            background-color: var(--correct-option-bg);
+            border-color: var(--correct-feedback-border);
+            color: var(--correct-feedback-text);
+            box-shadow: 0 4px 8px rgba(34, 197, 94, 0.2);
+        }
+        .option-button.incorrect {
+            background-color: var(--incorrect-option-bg);
+            border-color: var(--incorrect-feedback-border);
+            color: var(--incorrect-feedback-text);
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.2);
+        }
+        .navigation-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .nav-button {
+            background-color: var(--nav-button-bg);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 5px 15px var(--nav-button-shadow);
+            border: none;
+        }
+        .nav-button:hover {
+            background-color: var(--nav-button-hover-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px var(--nav-button-shadow);
+        }
+        .nav-button:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .feedback-message {
+            margin-top: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: left;
+            padding: 10px 15px;
+            border-radius: 12px;
+            background-color: var(--feedback-bg);
+            border: 1px solid var(--feedback-border);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+            line-height: 1.5;
+            transition: all 0.3s ease;
+        }
+        .feedback-message.correct-feedback {
+            color: var(--correct-feedback-text);
+            border-color: var(--correct-feedback-border);
+        }
+        .feedback-message.incorrect-feedback {
+            color: var(--incorrect-feedback-text);
+            border-color: var(--incorrect-feedback-border);
+        }
+        .feedback-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            min-height: 24px;
+        }
+        .feedback-result {
+            flex-grow: 1;
+        }
+        .feedback-result strong {
+            font-size: 1.1rem;
+        }
+        .explanation-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, padding-top 0.4s ease-out, margin-top 0.4s ease-out;
+            padding-top: 0;
+            margin-top: 0;
+        }
+        .explanation-content.show {
+            max-height: 200px;
+            padding-top: 10px;
+            margin-top: 10px;
+            border-top: 1px solid var(--feedback-border);
+        }
+        .explanation-text {
+            font-weight: 400;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+        }
+        .feedback-message.correct-feedback .explanation-text {
+            color: var(--correct-feedback-text);
+        }
+        .feedback-message.incorrect-feedback .explanation-text {
+            color: var(--incorrect-feedback-text);
+        }
+        .toggle-explanation-button {
+            background-color: var(--nav-button-bg);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 5px var(--nav-button-shadow);
+            flex-shrink: 0;
+        }
+        .toggle-explanation-button:hover {
+            transform: translateY(-1px);
+        }
+        .toggle-explanation-button.hidden {
+            display: none;
+        }
+        .score-area {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--score-color);
+            margin-top: 25px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            transition: color 0.3s ease;
+        }
+        .score-comment {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--score-comment-color);
+            margin-top: 10px;
+            transition: color 0.3s ease;
+        }
+        .mode-selection-dropdown, .question-count-selection {
+            margin-bottom: 15px;
+        }
+        .mode-selection-dropdown label, .question-count-selection label {
+            display: block;
+            text-align: left;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .mode-selection-dropdown select, .question-count-selection select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--button-border-default);
+            font-size: 1rem;
+            background-color: var(--button-bg-default);
+            color: var(--button-text-default);
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%23333%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 1.2em;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        .start-button {
+            background-color: var(--start-button-bg);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 6px 15px var(--start-button-shadow);
+            margin-top: 20px;
+            border: none;
+        }
+        .start-button:hover {
+            background-color: var(--start-button-hover-bg);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px var(--start-button-shadow);
+        }
+        #settingsButton {
+            background-color: var(--settings-button-bg);
+            box-shadow: 0 5px 15px var(--settings-button-shadow);
+        }
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal.show { opacity: 1; visibility: visible; }
+        .modal-content { background-color: var(--bg-secondary); padding: 35px; border-radius: 20px; text-align: center; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3); max-width: 450px; width: 90%; transform: translateY(-30px); transition: transform 0.3s ease, background-color 0.3s ease; }
+        .modal.show .modal-content { transform: translateY(0); }
+        .modal-title { font-size: 2rem; font-weight: 800; color: var(--score-color); margin-bottom: 20px; transition: color 0.3s ease; }
+        .modal-message { font-size: 1.2rem; color: var(--text-primary); margin-bottom: 30px; line-height: 1.6; transition: color 0.3s ease; }
+        .modal-buttons { display: flex; justify-content: center; gap: 15px; }
+        .modal-button { background-color: var(--nav-button-bg); color: white; padding: 12px 30px; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background-color 0.3s ease, transform 0.2s ease; box-shadow: 0 4px 10px var(--nav-button-shadow); border: none; }
+        .modal-button:hover { background-color: var(--nav-button-hover-bg); transform: translateY(-1px); }
+        #modalCancelButton { background-color: #64748b; box-shadow: 0 4px 10px rgba(100, 116, 139, 0.3); }
+        #modalCancelButton:hover { background-color: #475569; }
+        .progress-container { width: 100%; background-color: #e2e8f0; border-radius: 10px; height: 15px; margin-top: 10px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+        .progress-bar { height: 100%; width: 0%; background-color: var(--progress-bar-bg); border-radius: 10px; transition: width 0.3s ease-in-out, background-color 0.3s ease; }
+        .progress-text { font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-top: 10px; transition: color 0.3s ease; }
+        #interruptButton { background-color: var(--interrupt-button-bg); box-shadow: 0 5px 15px var(--interrupt-button-shadow); position: absolute; top: 15px; right: 15px; left: unset; padding: 8px 15px; font-size: 0.8rem; z-index: 10; flex-grow: 0; min-width: unset; }
+        #interruptButton:hover { background-color: var(--interrupt-button-hover-bg); }
+        
+        .confetti-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 0; }
+        .confetti { position: absolute; width: 10px; height: 10px; background-color: #f06; opacity: 1; }
+        
+        .settings-option { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--button-border-default); }
+        .settings-option:last-child { border-bottom: none; }
+        .settings-option label { font-size: 1.1rem; color: var(--text-primary); font-weight: 600; }
+        .theme-colors { display: flex; gap: 10px; }
+        .color-circle { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s ease; }
+        .color-circle.selected { border-color: var(--nav-button-bg); }
+        .toggle-switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--nav-button-bg); }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        @media (min-width: 640px) {
+            .options-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-extrabold mb-6" style="color: var(--score-color);">情報処理入門クイズ</h1>
+        <div id="confettiContainer" class="confetti-container"></div>
+
+        <!-- スタート画面 -->
+        <div id="startScreen" class="screen active">
+            <p class="text-lg mb-4" style="color: var(--text-primary);">学習したいモードを選択してください。</p>
+            <div class="mode-selection-dropdown">
+                <select id="quizModeSelect">
+                    <option value="random">全範囲からランダム出題</option>
+                    <option value="incorrect">苦手克服モード</option>
+                    <optgroup label="過去問題 (分野別)">
+                        <option value="past-fundamentals">情報基礎</option>
+                        <option value="past-network">ネットワーク</option>
+                        <option value="past-compression">データ表現と圧縮</option>
+                        <option value="past-security">情報セキュリティ</option>
+                        <option value="past-ethics">情報倫理と法律</option>
+                        <option value="past-word">Word</option>
+                        <option value="past-excel">Excel</option>
+                        <option value="past-powerpoint">PowerPoint</option>
+                        <option value="past-matlab">MATLAB</option>
+                    </optgroup>
+                    <optgroup label="予想問題">
+                        <option value="predict-1">予想問題セット1</option>
+                        <option value="predict-2">予想問題セット2</option>
+                        <option value="predict-3">予想問題セット3</option>
+                    </optgroup>
+                </select>
+            </div>
+            <button id="startButton" class="start-button">クイズ開始</button>
+            <button id="settingsButton" class="nav-button">設定</button>
+        </div>
+
+        <!-- クイズ画面 -->
+        <div id="quizScreen" class="screen">
+            <button id="interruptButton" class="nav-button">中断する</button>
+            <div class="progress-container">
+                <div id="progressBar" class="progress-bar"></div>
+            </div>
+            <div id="progressText" class="progress-text"></div>
+
+            <div class="question-area">
+                <div id="questionText" class="question-text"></div>
+            </div>
+
+            <div id="optionsGrid" class="options-grid"></div>
+
+            <div id="feedbackMessage" class="feedback-message" style="display: none;">
+                <div class="feedback-header">
+                    <div id="feedbackResult"></div>
+                    <button id="toggleExplanationButton" class="toggle-explanation-button hidden">解説▼</button>
+                </div>
+                <div id="explanationContent" class="explanation-content">
+                    <div class="explanation-text"></div>
+                </div>
+            </div>
+
+            <div class="navigation-buttons">
+                <button id="nextButton" class="nav-button">次の問題</button>
+            </div>
+        </div>
+
+        <!-- 結果画面 -->
+        <div id="resultScreen" class="screen">
+            <h2 class="text-2xl font-bold mb-4" style="color: var(--score-color);">クイズ結果</h2>
+            <div id="finalScore" class="score-area"></div>
+            <div id="scoreComment" class="score-comment"></div>
+            <button id="restartButton" class="nav-button mt-6">もう一度プレイ</button>
+            <button id="redoIncorrectButton" class="nav-button mt-2" style="background-color: var(--interrupt-button-bg);">間違えた問題をもう一度やる</button>
+        </div>
+
+        <!-- 設定画面 -->
+        <div id="settingsScreen" class="screen">
+            <h2 class="text-2xl font-bold mb-4" style="color: var(--score-color);">設定</h2>
+            <div class="settings-option">
+                <label for="darkModeToggle">ダークモード</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="darkModeToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="settings-option">
+                <label>テーマカラー</label>
+                <div class="theme-colors">
+                    <div class="color-circle" data-theme="default" style="background-color: #0ea5e9;"></div>
+                    <div class="color-circle" data-theme="red" style="background-color: #ef4444;"></div>
+                    <div class="color-circle" data-theme="green" style="background-color: #10b981;"></div>
+                    <div class="color-circle" data-theme="indigo" style="background-color: #6366f1;"></div>
+                </div>
+            </div>
+            <div class="settings-option">
+                <label for="questionCountSelect">問題数</label>
+                <select id="questionCountSelect">
+                    <option value="5">5問</option>
+                    <option value="10">10問</option>
+                    <option value="15">15問</option>
+                    <option value="20">20問</option>
+                </select>
+            </div>
+            <div class="settings-option">
+                <label for="showProgressToggle">進捗状況を表示</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="showProgressToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="settings-option">
+                <label for="enableSoundToggle">効果音</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="enableSoundToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <button id="backToStartButton" class="nav-button mt-6">戻る</button>
+        </div>
+    </div>
+
+    <!-- モーダル -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle" class="modal-title"></h2>
+            <p id="modalMessage" class="modal-message"></p>
+            <div class="modal-buttons">
+                <button id="modalConfirmButton" class="modal-button">はい</button>
+                <button id="modalCancelButton" class="modal-button">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 問題データ ---
+        const allQuestions = [
+            // --- 過去問題 ---
+            // 情報基礎
+            { id: 'p-1', lesson: 'past-fundamentals', text: "1 バイト (Byte)は何ビット(bit)か、次の中から選べ。", options: ["5 bit", "8 bit", "10 bit", "12 bit"], answer: "8 bit", explanation: "1バイトは8ビットです。これはコンピュータ科学における基本的な定義です。" },
+            { id: 'p-2', lesson: 'past-fundamentals', text: "現在利用しているデータ通信には、1GByteの通信量制限があり、制限を超えると通信速度が大幅に低下する。通常の速度で講義資料をダウンロードしたい時、100MByte の講義資料を最大何回ダウンロードできるか。", options: ["約1回", "約10回", "約100回", "約1000回"], answer: "約10回", explanation: "1 GByteは一般的に1000 MByteとして計算されるため、1000 ÷ 100 = 10回ダウンロードできます。" },
+            
+            // ネットワーク
+            { id: 'p-3', lesson: 'past-network', text: "インターネットで動画を視聴するには、どの程度の通信速度が必要か。次の中から適切なものを選べ。bpsはbit per second を表す。", options: ["20 bps", "20 kbps", "20 Mbps", "20 km/s"], answer: "20 Mbps", explanation: "高画質な動画（HDや4K）を快適に視聴するには、一般的に数Mbpsから数十Mbpsの速度が必要です。20Mbpsは十分な速度と言えます。" },
+            { id: 'p-4', lesson: 'past-network', text: "無線LANには、5GHzと2.4GHzの周波数帯域を用いるものがある。ドアなどの物理的な障害物に対して、比較的弱いとされるのはどちらか。", options: ["2.4GHz帯", "5GHz帯", "どちらも変わらない"], answer: "5GHz帯", explanation: "5GHz帯は周波数が高いため高速通信が可能ですが、直進性が強く、壁やドアなどの障害物に弱いという特徴があります。一方、2.4GHz帯は障害物に比較的強いです。" },
+            { id: 'p-5', lesson: 'past-network', text: "テザリングの説明として正しいものを選べ。", options: ["スマートフォンなど、モバイルデータ通信ができる端末を利用して、PC、タブレット、ゲーム機などをインターネットに接続すること。", "無線LANなどを利用して、PCをネットワークに接続すること。", "ゲームのキャラクターなどのデザインをすること。", "端末同士が直接通信するネットワーク。"], answer: "スマートフォンなど、モバイルデータ通信ができる端末を利用して、PC、タブレット、ゲーム機などをインターネットに接続すること。", explanation: "テザリングは、スマートフォンのモバイルデータ通信を介して、他のデバイスをインターネットに接続させる機能です。" },
+            { id: 'p-6', lesson: 'past-network', text: "Proxy(プロキシ)の説明として正しいものはどれか。", options: ["将棋を生業とする人のこと。", "内部ネットワークからインターネット接続を行う際、高速なアクセスや安全な通信を確保するための中継サーバ", "ドメイン名とIPアドレスの対応づけを管理するシステム", "ファイル転送を行うための通信プロトコル"], answer: "内部ネットワークからインターネット接続を行う際、高速なアクセスや安全な通信を確保するための中継サーバ", explanation: "プロキシサーバは、内部ネットワークのコンピュータの代理としてインターネットに接続し、キャッシュによるアクセス高速化や、フィルタリングによるセキュリティ向上などの役割を担います。" },
+            { id: 'p-7', lesson: 'past-network', text: "VPNの説明として正しいものはどれか。", options: ["インターネットなどの公共ネットワークを利用して、プライベートなネットワークに安全に接続を可能とする技術。", "最優秀選手のこと。", "仮想現実を作り出す技術。", "2点間を接続してデータ通信を行うための通信プロトコル。"], answer: "インターネットなどの公共ネットワークを利用して、プライベートなネットワークに安全に接続を可能とする技術。", explanation: "VPNは、公共のインターネット上に仮想的な専用線を構築し、通信を暗号化することで、安全にプライベートネットワーク（例：大学や会社のネットワーク）にアクセスするための技術です。" },
+
+            // データ表現と圧縮
+            { id: 'p-8', lesson: 'past-compression', text: "情報圧縮はなぜ必要か。適切なものを選べ。", options: ["データの内容を他人に知られないようにするため。", "データ通信において安全性を高めるため。", "圧縮しないと怒られるから。", "データ量を減らすことにより、通信やストレージなどの有限の資源を効率的に利用するため。"], answer: "データ量を減らすことにより、通信やストレージなどの有限の資源を効率的に利用するため。", explanation: "情報圧縮の主な目的は、データ量を削減し、ストレージ容量の節約や通信時間の短縮など、資源を効率的に利用することです。暗号化とは目的が異なります。" },
+            { id: 'p-9', lesson: 'past-compression', text: "1画素が8bit、画素数が 800×600 の画像データのデータ量は、何Byteか。適切なものを次から選べ。", options: ["3,840,000 Byte", "480,000 Byte", "30,720,000 Byte", "60,000 Byte"], answer: "480,000 Byte", explanation: "総ピクセル数は 800 × 600 = 480,000 ピクセル。総ビット数は 480,000 × 8 bit = 3,840,000 bit。バイトに変換するには8で割るので、3,840,000 ÷ 8 = 480,000 Byte となります。" },
+            { id: 'p-10', lesson: 'past-compression', text: "次の画像保存形式のうち、非圧縮なものはどれか。", options: ["JPG", "BMP", "PNG", "GIF"], answer: "BMP", explanation: "BMP(ビットマップ)は、基本的に情報を圧縮せずそのまま保存する非圧縮形式です。JPGは非可逆圧縮、PNGとGIFは可逆圧縮を用いる代表的な画像形式です。" },
+            { id: 'p-11', lesson: 'past-compression', text: "複数のファイルが入ったフォルダを圧縮して一つのファイルにまとめたい。この場合に使うファイル形式として適切なものはどれか。", options: ["ZIP", "POP", "ASCII", "UTF"], answer: "ZIP", explanation: "ZIPは、複数のファイルやフォルダを一つのファイルにまとめ、圧縮するための標準的なファイル形式（アーカイブ形式）です。" },
+
+            // 情報セキュリティ
+            { id: 'p-12', lesson: 'past-security', text: "ネットワークセキュリティで問題となる「フィッシング」の説明として適切なものを選べ。", options: ["インターネットのユーザから、偽のWebサイトに誘導することなどによって、個人情報などを奪うために行われる詐欺行為。", "悪意のあるソフトウェアの総称。", "コンピュータをロックし、身代金を要求するソフトウェア。", "ネットワークの通信を監視して情報を盗む行為。"], answer: "インターネットのユーザから、偽のWebサイトに誘導することなどによって、個人情報などを奪うために行われる詐欺行為。", explanation: "フィッシング詐欺は、正規の企業やサービスを装ったメールやSMSを送りつけ、偽のウェブサイトに誘導してパスワードやクレジットカード情報などを盗み出す手口です。" },
+            { id: 'p-13', lesson: 'past-security', text: "次の「」内の記述が正しいか正しくないかを選択肢から選べ。「管理者からシステムチェックのため IDとパスワードを知らせるように連絡があったので、メールに書いて送信した。」", options: ["正しい", "正しくない"], answer: "正しくない", explanation: "管理者や正規のサービス提供者が、メールや電話で直接パスワードを尋ねることは絶対にありません。これはフィッシング詐欺の典型的な手口です。" },
+            { id: 'p-14', lesson: 'past-security', text: "次の「」内の記述が正しいか正しくないかを選択肢から選べ。「友人から授業に関するメールが届いたが、内容が不自然だったので、返信せずにその友人に電話をかけてメールを送信したか確認した。」", options: ["正しい", "正しくない"], answer: "正しい", explanation: "メールアカウントが乗っ取られ、本人になりすまして悪意のあるメールが送信されることがあります。不審なメールを受け取った場合、メールで返信するのではなく、電話など別の手段で本人に確認するのは非常に適切な対応です。" },
+            { id: 'p-15', lesson: 'past-security', text: "パスワードの不正取得に関して、正しい記述を1つ選びなさい。", options: ["クラッキング用の辞書を用いてパスワードを探る手法を「ハッカー攻撃」と呼ぶ。", "パスワードとして可能な文字列を総当たりで試すクラッキング手法を「トロイの木馬」と呼ぶ。", "辞書に載っているような単語をパスワードに使うと、クラッキング用のプログラムにより破られてしまうことがある。", "クラッキング用の辞書には、日本語の固有名詞までは含まれていないので安心だ。"], answer: "辞書に載っているような単語をパスワードに使うと、クラッキング用のプログラムにより破られてしまうことがある。", explanation: "辞書に登録されている単語を試す「辞書攻撃」は一般的なクラッキング手法です。そのため、パスワードには辞書に載っているような単純な単語を避けるべきです。" },
+            { id: 'p-16', lesson: 'past-security', text: "バイオメトリックス認証に関する記述として、適切なものを1つ選びなさい。", options: ["バイオメトリックス認証で実用化されているのは指紋認証だけである。", "バイオメトリックス認証とは、ユーザ本人の身体的特徴を使った認証方式である。", "指紋認証は装置が大がかりになるので、USBメモリやノートパソコンなどに組み込むことはできない。", "バイオメトリックス認証は、パスワード認証に比べて装置が簡素化できるため、コストは安くなる。"], answer: "バイオメトリックス認証とは、ユーザ本人の身体的特徴を使った認証方式である。", explanation: "バイオメトリックス認証（生体認証）は、指紋、顔、虹彩、静脈など、個人の身体的特徴を用いて本人確認を行う認証方式です。" },
+
+            // 情報倫理と法律
+            { id: 'p-17', lesson: 'past-ethics', text: "次の「」内の記述が正しいか正しくないかを選択肢から選べ。「インターネットのWebサイトは、頻繁に更新されるため、新聞、ラジオ、テレビと比べて、得られる情報の信頼性が高い。」", options: ["正しい", "正しくない"], answer: "正しくない", explanation: "インターネット上の情報は誰でも簡単に発信できるため、玉石混交です。情報の信頼性は発信元によって大きく異なり、必ずしも高いとは限りません。情報の真偽を慎重に見極める必要があります。" },
+            { id: 'p-18', lesson: 'past-ethics', text: "次の「」内の記述が正しいか正しくないかを選択肢から選べ。「電子メールにサイズの大きなファイルを添付するときは、送受信可能なサイズに圧縮するか、分割して送ったほうがよい。」", options: ["正しい", "正しくない"], answer: "正しい", explanation: "大きなサイズのファイルは、相手のメールサーバの容量制限に引っかかったり、受信に時間がかかったりする可能性があります。ZIP形式で圧縮したり、オンラインストレージを利用したりするなどの配慮がマナーとされています。" },
+            { id: 'p-19', lesson: 'past-ethics', text: "自宅で学習中にワードに関して分からないことが発生した。質問する際に気を付けることを以下の選択肢から選べ。", options: ["なるべく早く知らせるべきなので、ワードについて質問がある、ということだけ書いたメールを送る", "ワードについては自己解決すべきであり、教員に質問するべきではない", "ワードには様々なバージョンがあり画面構成などに違いがあるためバージョン情報を添えるようにする。また、単に「分かりません」ではなく、状況説明を添えて質問する。", "夜間は質問のメールをしないようにする。"], answer: "ワードには様々なバージョンがあり画面構成などに違いがあるためバージョン情報を添えるようにする。また、単に「分かりません」ではなく、状況説明を添えて質問する。", explanation: "質問する際は、①何がしたいのか、②どういう操作をしたのか、③その結果どうなったのか、④使用しているソフトウェアのバージョン、などを具体的に伝えることで、回答者が状況を正確に把握でき、的確なアドバイスをしやすくなります。" },
+            { id: 'p-20', lesson: 'past-ethics', text: "ソーシャルメディアでの発言として、適切なものを1つ選びなさい。", options: ["他人の信用を傷つける虚偽の書き込み。", "他人の発言を多少変更した引用。", "特定の人物の住所、実名、電話番号を記した発言。", "全体の流れをわきまえた発言。"], answer: "全体の流れをわきまえた発言。", explanation: "ソーシャルメディアは公共の場です。他者を尊重し、文脈を理解した上で発言することが重要です。虚偽の書き込みや個人情報の暴露は、法的な問題に発展する可能性もあります。" },
+            { id: 'p-21', lesson: 'past-ethics', text: "Web ページの制作と運用について、適切な記述を1つ選びなさい。", options: ["自分の運営するWebページに他人の権利を侵害するような書き込みがあった場合、無断で削除すると法的責任が生じることがある。", "アクセシビリティに配慮し、装飾文字や機種依存文字を用いた。", "自分の運営するブログにコメントスパムが表示されないように、コメントを承認後に公開するよう設定した。", "最新のバージョンであれば、ブラウザの違いにより見え方が異なることはない。"], answer: "自分の運営するブログにコメントスパムが表示されないように、コメントを承認後に公開するよう設定した。", explanation: "コメントスパム対策として、管理者がコメントを承認した後に公開する設定は非常に有効です。これにより、不適切なコメントがサイトに表示されるのを防ぐことができます。" },
+            { id: 'p-22', lesson: 'past-ethics', text: "次の行為で正しいのはどれか、適切なものを1つ選びなさい。", options: ["おもしろい漫画を見つけたので、スキャナでデジタル化したデータを友人に渡した。", "児童ポルノであってもCG化したものなら公開してもよい。", "3Dプリンタが大学に設置されたので、通貨を偽造してみた。", "非常に分厚い論文誌をスキャナで取り込んで、タブレット端末で読んでいる。"], answer: "非常に分厚い論文誌をスキャナで取り込んで、タブレット端末で読んでいる。", explanation: "著作物は、個人的な利用や家庭内など限られた範囲で利用する場合に限り、複製（コピー）が認められています（私的利用のための複製）。論文誌を自分で読むためにスキャンする行為は、この範囲に含まれます。友人への譲渡や、違法な行為は認められません。" },
+
+            // Word
+            { id: 'p-23', lesson: 'past-word', text: "Wordで数式を入力する場合、変数などに使うアルファベットの記号は斜体(イタリック体)を用いることが多い。イタリック体の文字を次の中から選べ。", options: ["x, y, z, X, Y, Z", "<em>x, y, z, X, Y, Z</em>", "<b>x, y, z, X, Y, Z</b>"], answer: "<em>x, y, z, X, Y, Z</em>", explanation: "イタリック体は、文字が右に傾いた書体です。数式では変数を表すのによく使われます。" },
+            { id: 'p-24', lesson: 'past-word', text: "Wordの画面で、リボンメニューの下に表示され、インデントやタブの位置を設定する目盛りのついたバーを何と呼ぶか、図中の選択肢から選べ。<br>（図の想定：アはファイルタブ、イはルーラー、ウはカーソル、エはズームスライダーを指している）", options: ["ア", "イ", "ウ", "エ"], answer: "イ", explanation: "インデントやタブ位置、余白などを視覚的に調整するための目盛り付きのバーを「ルーラー」と呼びます。" },
+            { id: 'p-25', lesson: 'past-word', text: "「書式」をコピーして、他の部分に貼りつけたい場合、どのアイコンをクリックするか選べ。<br>（図の想定：アは「書式のコピー/貼り付け」のハケのアイコン、イは「太字」、ウは「元に戻す」、エは「スタイル」を指している）", options: ["ア", "イ", "ウ", "エ"], answer: "ア", explanation: "「書式のコピー/貼り付け」機能（ハケのアイコン）を使うと、文字の色やサイズ、太字などの書式情報だけをコピーして、別のテキストに適用できます。" },
+            { id: 'p-26', lesson: 'past-word', text: "ワード文書のヘッダー・フッターについて正しい記述を選びなさい。", options: ["ビジネス向けの機能であり学生のうちに使うことはない", "余白であり、印刷・配布された際にメモを書き込む貴重なスペースである", "ヘッダーには宛名、フッターには自分の名前を記入するのがマナーである", "ヘッダー・フッターには、文書名や、ページ番号などを記載することが多い"], answer: "ヘッダー・フッターには、文書名や、ページ番号などを記載することが多い", explanation: "ヘッダー（ページ上部）とフッター（ページ下部）は、文書の全ページに共通の情報を表示するための領域です。文書タイトル、章タイトル、ページ番号、作成日などを記載するのに便利です。" },
+
+            // Excel
+            { id: 'p-27', lesson: 'past-excel', text: "Excel で演算「3 + 5 × 7」を計算したい。セルに記述するものとして適切なものを選べ。", options: ["3+5*7", "3+5x7", "=3+5*7", "=SUM(3,5,7)"], answer: "=3+5*7", explanation: "Excelで計算式を入力する場合、先頭に「=」を付けます。また、乗算の記号には「*」を使います。Excelは数学のルール通り、乗算を先に計算します。" },
+            { id: 'p-28', lesson: 'past-excel', text: "Excelで、図のようにセルA1からA5に数値が入れられているものとする。この和を計算して、その結果をセルA6に入れたい。セルA6に入れる記述として適切なものを選べ。<br><br><table class='mx-auto'><tr><th> </th><th>A</th></tr><tr><td>1</td><td>1</td></tr><tr><td>2</td><td>2</td></tr><tr><td>3</td><td>3</td></tr><tr><td>4</td><td>4</td></tr><tr><td>5</td><td>5</td></tr><tr><td>6</td><td>?</td></tr></table>", options: ["=SUM(A1:A5)", "SUM(A1:A5)", "=SUM(1:5)", "SUM(1:5)"], answer: "=SUM(A1:A5)", explanation: "SUM関数は、指定した範囲のセルの数値を合計します。`=SUM(A1:A5)`は、セルA1からA5までの合計を計算するという意味です。" },
+            { id: 'p-29', lesson: 'past-excel', text: "Excelで、図のような入力がなされている。セルC4の税込価格を計算し、その式をC7までコピー（フィル）したい。税率係数(D1)のセル参照を固定する必要がある。C4に書くべき適切な記述を選べ。<br><br><table class='mx-auto'><tr><th> </th><th>A</th><th>B</th><th>C</th><th>D</th></tr><tr><td>1</td><td>情報食堂</td><td></td><td>税率係数</td><td>1.10</td></tr><tr><td>2</td><td></td><td></td><td></td><td></td></tr><tr><td>3</td><td>メニュー</td><td>本体価格</td><td>税込価格</td><td></td></tr><tr><td>4</td><td>カレー</td><td>300</td><td>?</td><td></td></tr></table>", options: ["=B4*D1", "=B4*D$1", "=$B$4*D1", "=B4*$D$1"], answer: "=B4*$D$1", explanation: "数式をコピーする際に、特定のセル参照を固定するには「絶対参照」を使います。絶対参照は、行番号と列名の前に「$」を付けます。この場合、税率係数のセルD1は動いてほしくないので `$D$1` とします。" },
+            { id: 'p-30', lesson: 'past-excel', text: "Excelにおいて、表に記載されているサンプルAの比率をセルC2に表示するには、どのような式を書けばよいか。この式はC3, C4にもコピーして使うものとする。<br><br><table class='mx-auto'><tr><th> </th><th>A</th><th>B</th><th>C</th></tr><tr><td>1</td><td></td><td>サンプル数</td><td>比率</td></tr><tr><td>2</td><td>サンプルA</td><td>20</td><td>?</td></tr><tr><td>3</td><td>サンプルB</td><td>50</td><td></td></tr><tr><td>4</td><td>サンプルC</td><td>30</td><td></td></tr><tr><td>5</td><td>合計</td><td>100</td><td></td></tr></table>", options: ["=B2/B5", "=B2/$B5", "=B2/B$5", "=B2/$B$5"], answer: "=B2/$B$5", explanation: "比率は「個別の値 ÷ 合計値」で求めます。C2には `=B2/B5` と入力します。この数式をC3, C4にコピーする際、分母である合計値のセル(B5)は動いてほしくないので、絶対参照 `$B$5` を使います。したがって、正解は `=B2/$B$5` となります。" },
+            { id: 'p-31', lesson: 'past-excel', text: "Excelにおいて、標本分散を算出するための関数は次のうちどれか。", options: ["VAR.P", "VAR.S", "STDEV.P", "STDEV.S"], answer: "VAR.S", explanation: "統計学において、母集団全体の分散を「母分散」、母集団から抽出した標本の分散を「標本分散」と呼びます。Excelでは、VAR.Pが母分散 (Population)、VAR.Sが標本分散 (Sample) を計算します。STDEVは標準偏差を求める関数です。" },
+            
+            // PowerPoint
+            { id: 'p-32', lesson: 'past-powerpoint', text: "プレゼンテーションの作成において正しくないものを選べ。", options: ["聞き手が誰か考えて説明内容を考える", "なるべくたくさんアニメーションを使って派手にする", "発表時間を守る", "発表時にはプレゼンテーションモード(スライドショー)を利用する"], answer: "なるべくたくさんアニメーションを使って派手にする", explanation: "過度なアニメーションは、聞き手の集中を妨げ、内容の伝達を阻害する可能性があります。アニメーションは、内容を効果的に見せるために、目的を持って控えめに使うのが良いとされています。" },
+            { id: 'p-33', lesson: 'past-powerpoint', text: "プレゼンテーション作成中に、複数のオブジェクトからなるひとつの図を作成した。この後の編集では、この図が一体となって動くようにしたい。何をすれば良いか選べ。", options: ["一体化", "マージ", "グループ化", "オブジェクト化"], answer: "グループ化", explanation: "PowerPointでは、複数の図形やテキストボックスなどのオブジェクトを選択し、「グループ化」することで、一つのオブジェクトのようにまとめて移動や拡縮ができるようになります。" },
+            { id: 'p-34', lesson: 'past-powerpoint', text: "一般的なプレゼンテーションにおいて、許容される文字サイズの下限は何ポイント程度か以下の選択肢から選べ。", options: ["約44pt", "約36pt", "約20pt", "約10.5pt"], answer: "約20pt", explanation: "プレゼンテーションのスライドは、会場の後ろの席からも読める必要があります。一般的に、本文の文字サイズは最低でも18pt〜20pt以上が望ましいとされています。" },
+            { id: 'p-35', lesson: 'past-powerpoint', text: "スライドマスターの説明として適切なものを以下から選べ。", options: ["すべてのスライドに共通して行う設定(フォント、ロゴなど)を実施可能な特別なシート", "マイクロソフトが主催するパワーポイントの資格試験", "パワーポイントのオンライン講座", "プレゼンテーション時、AIが自動的にページを送ったりする機能"], answer: "すべてのスライドに共通して行う設定(フォント、ロゴなど)を実施可能な特別なシート", explanation: "スライドマスターは、プレゼンテーション全体のスライドレイアウト、フォント、色、背景、ロゴなどを一括で設定・編集するための機能です。これにより、統一感のあるデザインを効率的に作成できます。" },
+            { id: 'p-36', lesson: 'past-powerpoint', text: "授業課題のパワーポイントファイルを提出する際の注意として適切でないものを以下の選択肢から選べ。", options: ["ファイルサイズが大きすぎないか確認する", "指定されたフォーマットになっているか確認する", "環境に依存せず閲覧できるようPDFに変換する", "利用した映像や図が他者の権利を侵害していないか確認する"], answer: "環境に依存せず閲覧できるようPDFに変換する", explanation: "提出形式は、提出先の指示に従う必要があります。PowerPointファイル(.pptx)での提出を求められている場合に、勝手にPDFに変換して提出するのは適切ではありません。指示がないか確認することが重要です。" },
+
+            // MATLAB
+            { id: 'p-37', lesson: 'past-matlab', text: "MATLAB で数字1,2,3をこの順序で含む列ベクトルxを定義する方法として正しいものを次の中から選べ。", options: ["x = [1 2 3]", "x = [1; 2; 3]", "x = (1 2 3)", "x = (1; 2; 3)"], answer: "x = [1; 2; 3]", explanation: "MATLABでは、角括弧 `[]` を使ってベクトルや行列を定義します。行ベクトルの要素はスペースまたはカンマで区切り、列ベクトルの要素はセミコロン `;` で区切ります。" },
+
+            // --- 予想問題セット1 ---
+            { id: 'e1-1', lesson: 'predict-1', text: "Excelで、セルA1に「10」、セルA2に「20」と入力されている。セルA3に `=A1+A2` と入力した。その後、セルA1の値を「15」に変更した場合、セルA3の値はどうなるか。", options: ["30のまま変わらない", "25になる", "35になる", "#VALUE! エラーになる"], answer: "35になる", explanation: "Excelの数式は参照先のセルの値が変更されると自動的に再計算されます。A1が15になったので、A3は 15 + 20 = 35 となります。" },
+            { id: 'e1-2', lesson: 'predict-1', text: "マルウェアの一種で、自己増殖機能を持たず、有用なソフトウェアに見せかけてコンピュータに侵入し、データ破壊や情報漏洩などを行うものは何か。", options: ["ウイルス", "ワーム", "トロイの木馬", "スパイウェア"], answer: "トロイの木馬", explanation: "トロイの木馬は、無害なプログラムを装ってユーザーに実行させ、裏で悪意のある動作を行うマルウェアです。自己増殖はしません。" },
+            { id: 'e1-3', lesson: 'predict-1', text: "Webサイトの閲覧履歴や入力情報などを、ユーザーのPCに一時的に保存する仕組みを何と呼ぶか。", options: ["キャッシュ", "クッキー", "セッション", "ログ"], answer: "クッキー", explanation: "クッキー(Cookie)は、Webサーバーがユーザーのブラウザに情報を保存させる仕組みです。ログイン状態の維持や、サイトの訪問回数の記録などに利用されます。" },
+            { id: 'e-1-4', lesson: 'predict-1', text: "Wordで、特定の単語を文書全体から探し出し、別の単語に一括で置き換えるための機能は何か。", options: ["オートコレクト", "検索と置換", "スペルチェック", "インデックスの作成"], answer: "検索と置換", explanation: "「検索と置換」機能を使うと、文書内の特定の文字列を効率的に検索し、別の文字列に一括または個別に置き換えることができます。" },
+            { id: 'e1-5', lesson: 'predict-1', text: "IPアドレスが「192.168.1.10」のような形式で表されるのに対し、「www.example.com」のような人間が覚えやすい形式の名前を何と呼ぶか。", options: ["URL", "ホスト名", "ドメイン名", "MACアドレス"], answer: "ドメイン名", explanation: "ドメイン名は、IPアドレスに対応付けられた、人間が識別しやすい名前です。DNSというシステムによって、ドメイン名とIPアドレスが相互に変換されます。" },
+            { id: 'e1-6', lesson: 'predict-1', text: "ExcelのIF関数で、セルB2の値が60以上なら「合格」、60未満なら「不合格」とセルC2に表示したい。C2に入れるべき式はどれか。", options: ["=IF(B2>=60, 合格, 不合格)", "=IF(B2>=60, \"合格\", \"不合格\")", "=IF(B2>60, \"合格\", \"不合格\")", "=IF(B2, >=60, \"合格\", \"不合格\")"], answer: "=IF(B2>=60, \"合格\", \"不合格\")", explanation: "IF関数の書式は `IF(論理式, 値が真の場合, 値が偽の場合)` です。文字列を扱う場合はダブルクォーテーション `\"` で囲む必要があります。" },
+            { id: 'e1-7', lesson: 'predict-1', text: "公共の場で利用できる、暗号化されていないフリーWi-Fiに接続する際の注意点として、最も適切なものはどれか。", options: ["通信速度が速いので積極的に利用するべき", "暗号化されていないため、個人情報やパスワードの入力は避けるべき", "セキュリティソフトが入っていれば何をしても安全である", "フリーWi-Fiは法律で安全性が保証されている"], answer: "暗号化されていないため、個人情報やパスワードの入力は避けるべき", explanation: "暗号化されていないWi-Fiは、通信内容が第三者に傍受（盗み見）される危険性があります。そのため、ネットバンキングやオンラインショッピングなど、重要な個人情報をやり取りする通信は避けるべきです。" },
+            { id: 'e1-8', lesson: 'predict-1', text: "Wordで、文章の見た目を整えるために、行の先頭を字下げする機能を何と呼ぶか。", options: ["インデント", "タブ", "マージン", "ヘッダー"], answer: "インデント", explanation: "インデントは、段落の左端や右端、または最初の行の位置を調整する機能です。字下げはインデントの一種です。" },
+            { id: 'e1-9', lesson: 'predict-1', text: "コンピュータネットワークにおいて、データを小さな単位に分割して送受信する。この分割されたデータの単位を何と呼ぶか。", options: ["フレーム", "パケット", "セグメント", "ビット"], answer: "パケット", explanation: "ネットワーク上でデータをやり取りする際には、データをパケットと呼ばれる小さな単位に分割して送受信します。各パケットには宛先アドレスなどの制御情報が付加されます。" },
+            { id: 'e1-10', lesson: 'predict-1', text: "Excelで、複数のセルの書式（色、罫線など）を、あらかじめ定義されたスタイルの組み合わせから一度に設定する機能は何か。", options: ["条件付き書式", "セルのスタイル", "テーブルとして書式設定", "ピボットテーブル"], answer: "テーブルとして書式設定", explanation: "「テーブルとして書式設定」機能を使うと、データ範囲を選択するだけで、見やすい縞模様や罫線、フィルター機能などを一括で適用し、表をテーブルに変換できます。" },
+
+            // --- 予想問題セット2 ---
+            { id: 'e2-1', lesson: 'predict-2', text: "PowerPointで、発表者だけが見ることができる画面に、次のスライドやメモを表示する機能を何と呼ぶか。", options: ["スライドマスター", "アウトライン表示", "発表者ツール", "閲覧表示"], answer: "発表者ツール", explanation: "発表者ツールは、プロジェクターなどで聴衆にスライドショーを見せながら、手元のPC画面には現在のスライド、次のスライド、メモ、経過時間などを表示できる機能です。" },
+            { id: 'e2-2', lesson: 'predict-2', text: "可逆圧縮と非可逆圧縮に関する説明として正しいものはどれか。", options: ["可逆圧縮は圧縮率が高いが、画質が劣化する。", "非可逆圧縮はデータを完全に元に戻すことができる。", "PNG形式は非可逆圧縮、JPEG形式は可逆圧縮である。", "可逆圧縮はデータを完全に元に戻せるが、圧縮率は非可逆圧縮ほど高くない。"], answer: "可逆圧縮はデータを完全に元に戻せるが、圧縮率は非可逆圧縮ほど高くない。", explanation: "可逆圧縮は、圧縮したデータを完全に元の状態に戻せる圧縮方式です（例: ZIP, PNG）。非可逆圧縮は、人間の目や耳では知覚しにくい部分のデータを間引くことで高い圧縮率を実現しますが、完全に元には戻せません（例: JPEG, MP3）。" },
+            { id: 'e2-3', lesson: 'predict-2', text: "インターネット上で他人の著作物を無断で利用する行為について、著作権法違反とならない可能性が最も高いものはどれか。", options: ["市販の音楽CDの曲を、自分の結婚式で流すためにコピーする。", "有名なアニメのキャラクターを、自分のブログ記事の挿絵として無断で使用する。", "新聞の社説を、大学のレポートで論評するために一部を引用し、出典を明記する。", "有料の映画をダウンロードし、SNSで友人に共有する。"], answer: "新聞の社説を、大学のレポートで論評するために一部を引用し、出典を明記する。", explanation: "著作権法では、報道、批評、研究などの目的で、公正な慣行に合致し、正当な範囲内で行われる「引用」は、著作権者の許諾なく利用できると定められています。出典の明記は必須です。" },
+            { id: 'e2-4', lesson: 'predict-2', text: "Excelで、セル範囲A1:A10に入力された数値の平均値を求める関数はどれか。", options: ["=SUM(A1:A10)", "=MAX(A1:A10)", "=COUNT(A1:A10)", "=AVERAGE(A1:A10)"], answer: "=AVERAGE(A1:A10)", explanation: "AVERAGE関数は、指定した範囲の数値の平均値（算術平均）を計算します。" },
+            { id: 'e2-5', lesson: 'predict-2', text: "PowerPointで、スライドの切り替え時に動きをつける効果を何と呼ぶか。", options: ["アニメーション", "画面切り替え（トランジション）", "ハイパーリンク", "デザインテンプレート"], answer: "画面切り替え（トランジション）", explanation: "画面切り替え（トランジション）は、あるスライドから次のスライドへ移る際の視覚効果です。一方、アニメーションはスライド内の個々のオブジェクト（文字や図形）に動きをつける効果です。" },
+            { id: 'e2-6', lesson: 'predict-2', text: "文字コードに関する説明として、最も不適切なものはどれか。", options: ["ASCIIコードは、アルファベット、数字、記号などを表現する基本的な文字コードである。", "Shift_JISは、日本語を表現するために作られた文字コードの一つである。", "UTF-8は、世界中の様々な言語の文字を統一的に扱うことができる文字コードである。", "文字コードが異なっていても、コンピュータ間でファイルをやり取りする際に文字化けは発生しない。"], answer: "文字コードが異なっていても、コンピュータ間でファイルをやり取りする際に文字化けは発生しない。", explanation: "送信側と受信側で文字コードの解釈が異なると、文字が正しく表示されず、意味不明な記号の羅列になってしまう「文字化け」が発生します。" },
+            { id: 'e2-7', lesson: 'predict-2', text: "友人のSNSの投稿に対して、根拠のない誹謗中傷のコメントを書き込む行為は、どの法律に抵触する可能性があるか。", options: ["著作権法", "不正アクセス禁止法", "名誉毀損罪（刑法）", "個人情報保護法"], answer: "名誉毀損罪（刑法）", explanation: "公然と事実を摘示し、人の名誉を毀損する行為は、刑法の名誉毀損罪にあたる可能性があります。インターネット上の書き込みも「公然」と見なされます。" },
+            { id: 'e2-8', lesson: 'predict-2', text: "Excelで、C列を非表示にした。この操作に関する説明として正しいものはどれか。", options: ["C列のデータは削除され、元に戻すことはできない。", "C列のデータは残っており、計算式などからも参照される。", "印刷する際には、非表示にしたC列が必ず印刷される。", "ファイルを保存すると、非表示にしたC列のデータは失われる。"], answer: "C列のデータは残っており、計算式などからも参照される。", explanation: "列を非表示にしても、データは削除されずにシート内に保持されています。そのため、他のセルからの数式参照なども有効なままです。「再表示」操作でいつでも元に戻すことができます。" },
+            { id: 'e2-9', lesson: 'predict-2', text: "プレゼンテーションの聞き手の注意を引きつけ、理解を促すための工夫として、最も適切でないものはどれか。", options: ["1枚のスライドには、1つの重要なメッセージだけを込めるようにする。", "専門用語を多用して、自分の知識の深さを示す。", "グラフや図を効果的に使い、視覚的に分かりやすくする。", "適切なタイミングで「間」を取り、聞き手が考える時間を作る。"], answer: "専門用語を多用して、自分の知識の深さを示す。", explanation: "聞き手の知識レベルに合わない専門用語を多用すると、内容が伝わらず、理解を妨げる原因になります。できるだけ平易な言葉で説明するか、専門用語には注釈を加えるなどの配慮が必要です。" },
+            { id: 'e2-10', lesson: 'predict-2', text: "音声データをデジタル化する際に行われる処理で、音の波を一定の時間間隔で区切り、その時点での波の高さを測定する処理を何と呼ぶか。", options: ["量子化", "符号化", "サンプリング", "圧縮"], answer: "サンプリング", explanation: "サンプリング（標本化）は、アナログ信号である音の波を、一定の時間間隔で測定し、離散的なデータに変換する処理です。この間隔が細かいほど（サンプリング周波数が高いほど）、元の音に忠実なデジタルデータになります。" },
+
+            // --- 予想問題セット3 ---
+            { id: 'e3-1', lesson: 'predict-3', text: "OS (Operating System) の主な役割として、適切でないものはどれか。", options: ["ハードウェア（CPUやメモリなど）の管理", "ファイルやフォルダの管理", "アプリケーションソフトウェアの実行環境の提供", "Webページのコンテンツ作成"], answer: "Webページのコンテンツ作成", explanation: "Webページの作成は、テキストエディタやWebオーサリングツールといったアプリケーションソフトウェアの役割です。OSは、それらのアプリケーションが動作するための土台となる基本的な機能を提供します。" },
+            { id: 'e3-2', lesson: 'predict-3', text: "MATLABで、`A = [1 2; 3 4]` と定義された行列Aがある。その(2, 1)要素（2行目、1列目）にアクセスするための正しいコマンドはどれか。", options: ["A[2, 1]", "A(2, 1)", "A{2, 1}", "A.2.1"], answer: "A(2, 1)", explanation: "MATLABでは、行列の要素にアクセスする際に丸括弧 `()` を使用し、`(行インデックス, 列インデックス)` のように指定します。したがって、`A(2, 1)` は行列Aの2行目1列目の要素、つまり `3` を返します。" },
+            { id: 'e3-3', lesson: 'predict-3', text: "二要素認証（2FA）に関する説明として、最も適切なものはどれか。", options: ["2つの異なるパスワードを設定することでセキュリティを高める方式。", "知識情報、所持情報、生体情報のうち、2つの異なる要素を組み合わせて認証する方式。", "2人の管理者が承認しないとログインできない方式。", "2回連続でログインに失敗するとアカウントがロックされる方式。"], answer: "知識情報、所持情報、生体情報のうち、2つの異なる要素を組み合わせて認証する方式。", explanation: "二要素認証は、①パスワードなどの「知識情報」、②スマートフォンなどの「所持情報」、③指紋などの「生体情報」という3種類のうち、異なる2種類を組み合わせて本人確認を行うことで、セキュリティを強化する仕組みです。" },
+            { id: 'e4-4', lesson: 'predict-3', text: "コンピュータの記憶装置のうち、電源を切ると内容が消えてしまう性質を持つものはどれか。", options: ["HDD (ハードディスクドライブ)", "SSD (ソリッドステートドライブ)", "RAM (ランダムアクセスメモリ)", "USBメモリ"], answer: "RAM (ランダムアクセスメモリ)", explanation: "RAMは、CPUが直接読み書きする高速なメモリ（主記憶装置）ですが、通電がなくなると記憶内容が消えてしまう「揮発性」という性質を持っています。HDDやSSD、USBメモリは電源を切っても内容が消えない「不揮発性」です。" },
+            { id: 'e3-5', lesson: 'predict-3', text: "HTTPS通信で使われ、通信の暗号化と、Webサイト運営者の実在性証明の役割を持つ電子的な証明書は何か。", options: ["IPアドレス証明書", "Cookie証明書", "DNS証明書", "SSL/TLSサーバー証明書"], answer: "SSL/TLSサーバー証明書", explanation: "SSL/TLSサーバー証明書は、①ブラウザとWebサーバー間の通信を暗号化し、②そのWebサイトが信頼できる第三者認証局によって認証された本物であることを証明する役割を持ちます。これにより、なりすましや盗聴を防ぎます。" },
+            { id: 'e3-6', lesson: 'predict-3', text: "MATLABで、`%` 記号の役割は何か。", options: ["行の終わりを示す", "セルの区切りを示す", "その行のそれ以降をコメントとして扱う", "行列の転置を行う"], answer: "その行のそれ以降をコメントとして扱う", explanation: "`%` を付けると、その行の `%` 以降のテキストはプログラムの実行時に無視されるコメントになります。コードの動作を説明したり、一時的にコードを無効化したりするのに使われます。" },
+            { id: 'e3-7', lesson: 'predict-3', text: "CPUの性能を表す指標の一つで、1秒間に何回の基本命令を実行できるかを示す単位は何か。", options: ["bps (ビット毎秒)", "DPI (ドット毎インチ)", "Hz (ヘルツ)", "GB (ギガバイト)"], answer: "Hz (ヘルツ)", explanation: "CPUの性能指標であるクロック周波数はHz（ヘルツ）で表されます。これは1秒あたりのクロック信号の回数を示し、この数値が高いほど、一般的に処理速度が速いとされます。現在ではGHz（ギガヘルツ）の単位が一般的です。" },
+            { id: 'e3-8', lesson: 'predict-3', text: "コンピュータウイルス対策ソフトの役割として、適切でないものはどれか。", options: ["既知のウイルスを検出し、駆除する。", "未知のウイルスと思われる不審なプログラムの動きを検知する。", "ソフトウェアの脆弱性を自動的に修正する。", "電子メールの添付ファイルをスキャンしてウイルスを検出する。"], answer: "ソフトウェアの脆弱性を自動的に修正する。", explanation: "ウイルス対策ソフトはウイルスの検出・駆除が主な役割です。ソフトウェアの脆弱性（セキュリティ上の欠陥）を修正するには、そのソフトウェア自体のアップデート（修正プログラムの適用）が必要です。ウイルス対策ソフトが自動で修正するわけではありません。" },
+            { id: 'e3-9', lesson: 'predict-3', text: "HTML (HyperText Markup Language) の説明として正しいものはどれか。", options: ["Webページのデザインやレイアウトを指定するための言語。", "Webページに動的な機能を追加するためのプログラミング言語。", "Webページの構造（見出し、段落、リンクなど）を定義するためのマークアップ言語。", "データベースを操作するための言語。"], answer: "Webページの構造（見出し、段落、リンクなど）を定義するためのマークアップ言語。", explanation: "HTMLは、Webページのテキストや画像などのコンテンツに、「これは見出し」「これは段落」といった意味や構造を与えるためのマークアップ言語です。デザインはCSS、動的な機能はJavaScriptが主に担当します。" },
+            { id: 'e3-10', lesson: 'predict-3', text: "クラウドコンピューティングの一形態で、インターネット経由でソフトウェアを提供するサービスモデルを何と呼ぶか。", options: ["SaaS", "PaaS", "IaaS", "DaaS"], answer: "SaaS", explanation: "SaaS (Software as a Service) は、利用者がソフトウェアを自身のコンピュータにインストールすることなく、インターネット経由でサービスとして利用する形態です。GmailやMicrosoft 365などが代表例です。" },
+        ];
+
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let incorrectQuestionIds = [];
+        let correctlyAnsweredByLesson = {};
+        let sessionIncorrectQuestionIds = [];
+        let answeredQuestions = new Set();
+        let currentMode = 'random';
+        let questionCount = 10;
+        let showProgress = true;
+        let enableSound = true;
+        let confettiAnimationId;
+
+        // --- Sound Effect Setup ---
+        const sounds = {
+            correct: new Tone.Synth({ volume: -12, oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination(),
+            incorrect: new Tone.FMSynth({ volume: -8, harmonicity: 1.5, modulationIndex: 10, oscillator: { type: "sawtooth" }, envelope: { attack: 0.01, decay: 0.3, sustain: 0.01, release: 0.1 } }).toDestination(),
+            click: new Tone.Synth({ volume: -15, oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.01, release: 0.1 } }).toDestination(),
+            fanfare: new Tone.PolySynth(Tone.Synth, { volume: -10 }).toDestination(),
+        };
+
+        function playSound(type) {
+            if (!enableSound || Tone.context.state !== 'running') return;
+            const now = Tone.now();
+            try {
+                switch (type) {
+                    case 'correct': sounds.correct.triggerAttackRelease("C5", "8n", now); break;
+                    case 'incorrect': sounds.incorrect.triggerAttackRelease("A2", "8n", now); break;
+                    case 'click': sounds.click.triggerAttackRelease("C6", "16n", now); break;
+                    case 'fanfare':
+                        const fanfareNotes = ["C5", "E5", "G5", "C6"];
+                        fanfareNotes.forEach((note, i) => {
+                            sounds.fanfare.triggerAttackRelease(note, "8n", now + i * 0.15);
+                        });
+                        break;
+                }
+            } catch (error) {
+                console.error("Sound playback failed:", error);
+            }
+        }
+        
+        // --- DOM Elements ---
+        const startScreen = document.getElementById('startScreen');
+        const quizScreen = document.getElementById('quizScreen');
+        const resultScreen = document.getElementById('resultScreen');
+        const settingsScreen = document.getElementById('settingsScreen');
+        const quizModeSelect = document.getElementById('quizModeSelect');
+        const startButton = document.getElementById('startButton');
+        const settingsButton = document.getElementById('settingsButton');
+        const backToStartButton = document.getElementById('backToStartButton');
+        const questionTextElement = document.getElementById('questionText');
+        const optionsGridElement = document.getElementById('optionsGrid');
+        const feedbackMessageElement = document.getElementById('feedbackMessage');
+        const feedbackResultElement = document.getElementById('feedbackResult');
+        const explanationContentElement = document.getElementById('explanationContent');
+        const explanationTextElement = explanationContentElement.querySelector('.explanation-text');
+        const toggleExplanationButton = document.getElementById('toggleExplanationButton');
+        const nextButton = document.getElementById('nextButton');
+        const interruptButton = document.getElementById('interruptButton');
+        const progressBarContainer = document.querySelector('.progress-container');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const finalScore = document.getElementById('finalScore');
+        const scoreComment = document.getElementById('scoreComment');
+        const confettiContainer = document.getElementById('confettiContainer');
+        const restartButton = document.getElementById('restartButton');
+        const redoIncorrectButton = document.getElementById('redoIncorrectButton');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const themeColorCircles = document.querySelectorAll('.color-circle');
+        const questionCountSelect = document.getElementById('questionCountSelect');
+        const showProgressToggle = document.getElementById('showProgressToggle');
+        const enableSoundToggle = document.getElementById('enableSoundToggle');
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalConfirmButton = document.getElementById('modalConfirmButton');
+        const modalCancelButton = document.getElementById('modalCancelButton');
+
+        function showModal(title, message, onConfirm) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modal.classList.add('show');
+            modalConfirmButton.style.display = onConfirm ? 'inline-block' : 'none';
+            modalCancelButton.textContent = onConfirm ? 'いいえ' : '閉じる';
+            modalConfirmButton.onclick = () => { closeModal(); if (onConfirm) onConfirm(); };
+            modalCancelButton.onclick = closeModal;
+        }
+        function closeModal() { modal.classList.remove('show'); }
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        const themes = {
+            'default': { light: { '--nav-button-bg': '#0ea5e9', '--nav-button-hover-bg': '#0284c7', '--nav-button-shadow': 'rgba(14, 165, 233, 0.3)', '--progress-bar-bg': '#0ea5e9' } },
+            'red': { light: { '--nav-button-bg': '#ef4444', '--nav-button-hover-bg': '#dc2626', '--nav-button-shadow': 'rgba(239, 68, 68, 0.3)', '--progress-bar-bg': '#ef4444' } },
+            'green': { light: { '--nav-button-bg': '#10b981', '--nav-button-hover-bg': '#059669', '--nav-button-shadow': 'rgba(16, 185, 129, 0.3)', '--progress-bar-bg': '#10b981' } },
+            'indigo': { light: { '--nav-button-bg': '#6366f1', '--nav-button-hover-bg': '#4f46e5', '--nav-button-shadow': 'rgba(99, 102, 241, 0.3)', '--progress-bar-bg': '#6366f1' } }
+        };
+        
+        const darkThemeColors = { '--bg-primary': '#0f172a', '--bg-secondary': '#1e293b', '--text-primary': '#e2e8f0', '--text-secondary': '#94a3b8', '--button-bg-default': '#334155', '--button-text-default': '#e2e8f0', '--button-border-default': '#475569', '--nav-button-bg': '#38bdf8', '--nav-button-hover-bg': '#0ea5e9', '--nav-button-shadow': 'rgba(56, 189, 248, 0.3)', '--start-button-bg': '#2dd4bf', '--start-button-hover-bg': '#14b8a6', '--start-button-shadow': 'rgba(45, 212, 191, 0.3)', '--interrupt-button-bg': '#f87171', '--interrupt-button-hover-bg': '#ef4444', '--interrupt-button-shadow': 'rgba(248, 113, 113, 0.3)', '--progress-bar-bg': '#38bdf8', '--feedback-bg': '#334155', '--feedback-border': '#475569', '--correct-feedback-text': '#a7f3d0', '--correct-feedback-border': '#4ade80', '--incorrect-feedback-text': '#fecaca', '--incorrect-feedback-border': '#f87171', '--correct-option-bg': '#14532d', '--incorrect-option-bg': '#7f1d1d', '--score-color': '#e0f2fe', '--score-comment-color': '#7dd3fc', '--settings-button-bg': '#818cf8', '--settings-button-hover-bg': '#6366f1', '--settings-button-shadow': 'rgba(129, 140, 248, 0.3)' };
+
+        function applyColors(themeName, isDark) {
+            const root = document.documentElement;
+            const defaultLightColors = { '--bg-primary': '#f0f9ff', '--bg-secondary': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--button-bg-default': '#f1f5f9', '--button-text-default': '#334155', '--button-border-default': '#cbd5e1', '--start-button-bg': '#10b981', '--start-button-hover-bg': '#059669', '--start-button-shadow': 'rgba(16, 185, 129, 0.3)', '--interrupt-button-bg': '#ef4444', '--interrupt-button-hover-bg': '#dc2626', '--interrupt-button-shadow': 'rgba(239, 68, 68, 0.3)', '--feedback-bg': '#f8fafc', '--feedback-border': '#e2e8f0', '--correct-feedback-text': '#15803d', '--correct-feedback-border': '#22c55e', '--incorrect-feedback-text': '#b91c1c', '--incorrect-feedback-border': '#ef4444', '--correct-option-bg': '#dcfce7', '--incorrect-option-bg': '#fee2e2', '--score-color': '#0c4a6e', '--score-comment-color': '#0369a1', '--settings-button-bg': '#6366f1', '--settings-button-hover-bg': '#4f46e5', '--settings-button-shadow': 'rgba(99, 102, 241, 0.3)' };
+
+            if (isDark) {
+                Object.entries(darkThemeColors).forEach(([prop, value]) => root.style.setProperty(prop, value));
+            } else {
+                Object.entries(defaultLightColors).forEach(([prop, value]) => root.style.setProperty(prop, value));
+                const themeOverrides = themes[themeName]?.light || themes.default.light;
+                Object.entries(themeOverrides).forEach(([prop, value]) => root.style.setProperty(prop, value));
+            }
+        }
+
+        function setDarkMode(isDark) {
+            document.body.classList.toggle('dark-mode', isDark);
+            localStorage.setItem('darkMode', isDark);
+            applyColors(localStorage.getItem('themeColor') || 'default', isDark);
+        }
+
+        function setThemeColor(themeName) {
+            localStorage.setItem('themeColor', themeName);
+            if (!document.body.classList.contains('dark-mode')) {
+                applyColors(themeName, false);
+            }
+        }
+
+        async function prepareQuiz() {
+            if (Tone.context.state !== 'running') await Tone.start();
+            playSound('click');
+            currentMode = quizModeSelect.value;
+            localStorage.setItem('lastSelectedMode', currentMode);
+            questionCount = parseInt(questionCountSelect.value, 10);
+            localStorage.setItem('questionCount', questionCount);
+            
+            currentQuestions = [];
+            answeredQuestions.clear();
+            sessionIncorrectQuestionIds = [];
+            score = 0;
+            currentQuestionIndex = 0;
+
+            let sourcePool = [];
+            const isLessonMode = currentMode.startsWith('past-') || currentMode.startsWith('predict-');
+
+            if (isLessonMode) {
+                const allLessonQuestions = allQuestions.filter(q => q.lesson === currentMode);
+                const correctlyAnsweredIds = correctlyAnsweredByLesson[currentMode] || [];
+                
+                if (allLessonQuestions.length > 0 && correctlyAnsweredIds.length >= allLessonQuestions.length) {
+                     showModal('レッスン完了！', 'このレッスンの全問題をマスターしました！進捗をリセットして、もう一度挑戦しますか？', () => {
+                        correctlyAnsweredByLesson[currentMode] = [];
+                        localStorage.setItem('correctlyAnsweredByLesson', JSON.stringify(correctlyAnsweredByLesson));
+                        prepareQuiz();
+                    });
+                    return;
+                }
+                sourcePool = allLessonQuestions.filter(q => !correctlyAnsweredIds.includes(q.id));
+
+            } else if (currentMode === 'incorrect') {
+                sourcePool = allQuestions.filter(q => incorrectQuestionIds.includes(q.id));
+                 if (sourcePool.length === 0) {
+                    showModal('苦手克服モード', '現在、間違えた問題がありません。他のモードで学習しましょう！');
+                    return;
+                }
+            } else { // random mode
+                sourcePool = allQuestions;
+            }
+
+            shuffleArray(sourcePool);
+            currentQuestions = sourcePool.slice(0, questionCount);
+
+            if(currentQuestions.length > 0) {
+                startScreen.classList.remove('active');
+                quizScreen.classList.add('active');
+                resultScreen.classList.remove('active');
+                loadQuestion();
+            } else if (currentMode !== 'incorrect' && !isLessonMode) {
+                 showModal('問題エラー', '選択されたモードの問題が見つかりませんでした。');
+            } else if (isLessonMode && sourcePool.length === 0) {
+                // This case is handled by the completion check above, but as a fallback
+                showModal('レッスン完了！', 'このレッスンの問題はすべて正解済みです。設定から進捗をリセットできます。');
+            }
+        }
+
+        function loadQuestion() {
+            if (currentQuestions.length === 0 || currentQuestionIndex >= currentQuestions.length) {
+                showQuizResult();
+                return;
+            }
+            const question = currentQuestions[currentQuestionIndex];
+            questionTextElement.innerHTML = question.text; // Use innerHTML to render tables
+            optionsGridElement.innerHTML = '';
+            feedbackMessageElement.style.display = 'none';
+            feedbackMessageElement.classList.remove('correct-feedback', 'incorrect-feedback');
+            explanationContentElement.classList.remove('show');
+            explanationTextElement.textContent = '';
+            toggleExplanationButton.classList.add('hidden');
+            toggleExplanationButton.textContent = '解説▼';
+
+            const shuffledOptions = [...question.options];
+            shuffleArray(shuffledOptions);
+
+            shuffledOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.innerHTML = option; // Use innerHTML for potential italics
+                button.classList.add('option-button');
+                button.dataset.option = option;
+                button.addEventListener('click', () => selectOption(option, question.answer, question.id));
+                optionsGridElement.appendChild(button);
+            });
+            updateProgressBar();
+            updateNavigationButtons();
+        }
+
+        function selectOption(selectedOption, correctAnswer, questionId) {
+            if (answeredQuestions.has(questionId)) return;
+            disableOptions();
+            const currentQuestion = currentQuestions[currentQuestionIndex];
+            feedbackMessageElement.style.display = 'block';
+
+            if (selectedOption === correctAnswer) {
+                playSound('correct');
+                feedbackResultElement.innerHTML = `<strong>正解！</strong>`;
+                feedbackMessageElement.classList.add('correct-feedback');
+                score++;
+                // Remove from incorrect list if it was there
+                incorrectQuestionIds = incorrectQuestionIds.filter(id => id !== questionId);
+                // Add to correctly answered list for the specific lesson
+                const isLessonMode = currentMode.startsWith('past-') || currentMode.startsWith('predict-');
+                if (isLessonMode) {
+                    if (!correctlyAnsweredByLesson[currentMode]) {
+                        correctlyAnsweredByLesson[currentMode] = [];
+                    }
+                    if (!correctlyAnsweredByLesson[currentMode].includes(questionId)) {
+                        correctlyAnsweredByLesson[currentMode].push(questionId);
+                    }
+                }
+            } else {
+                playSound('incorrect');
+                feedbackResultElement.innerHTML = `<strong>不正解...</strong> 正解は「${correctAnswer}」でした。`;
+                feedbackMessageElement.classList.add('incorrect-feedback');
+                if (!incorrectQuestionIds.includes(questionId)) incorrectQuestionIds.push(questionId);
+                if (!sessionIncorrectQuestionIds.includes(questionId)) sessionIncorrectQuestionIds.push(questionId);
+            }
+            
+            answeredQuestions.add(questionId);
+            localStorage.setItem('incorrectQuestions', JSON.stringify(incorrectQuestionIds));
+            localStorage.setItem('correctlyAnsweredByLesson', JSON.stringify(correctlyAnsweredByLesson));
+
+
+            optionsGridElement.querySelectorAll('.option-button').forEach(button => {
+                if (button.dataset.option === correctAnswer) button.classList.add('correct');
+                else if (button.dataset.option === selectedOption) button.classList.add('incorrect');
+            });
+
+            if (currentQuestion.explanation) {
+                explanationTextElement.textContent = currentQuestion.explanation;
+                toggleExplanationButton.classList.remove('hidden');
+            }
+            updateNavigationButtons();
+        }
+
+        function disableOptions() {
+            optionsGridElement.querySelectorAll('.option-button').forEach(button => {
+                button.disabled = true;
+                button.style.cursor = 'default';
+            });
+        }
+
+        function updateNavigationButtons() {
+            const currentQuestion = currentQuestions[currentQuestionIndex];
+            if (!currentQuestion) {
+                nextButton.disabled = true;
+                return;
+            }
+            nextButton.disabled = !answeredQuestions.has(currentQuestion.id);
+            nextButton.textContent = (currentQuestionIndex === currentQuestions.length - 1 && !nextButton.disabled) ? '結果を見る' : '次の問題';
+        }
+
+        function updateProgressBar() {
+            const show = showProgress && currentQuestions.length > 0;
+            progressBarContainer.style.display = show ? 'block' : 'none';
+            progressText.style.display = show ? 'block' : 'none';
+            if (!show) return;
+            
+            const total = currentQuestions.length;
+            const progress = total > 0 ? (currentQuestionIndex + 1) / total : 0;
+            progressBar.style.width = `${progress * 100}%`;
+            progressText.textContent = `${currentQuestionIndex + 1} / ${total} 問目`;
+        }
+
+        function launchConfetti() {
+            if (confettiAnimationId) cancelAnimationFrame(confettiAnimationId);
+            confettiContainer.innerHTML = '';
+            const confettiPieces = [];
+            const numConfetti = 100;
+            const colors = ['#f43f5e', '#38bdf8', '#fbbf24', '#34d399', '#8b5cf6'];
+
+            for (let i = 0; i < numConfetti; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.backgroundColor = colors[i % colors.length];
+                confettiContainer.appendChild(confetti);
+                
+                const piece = {
+                    element: confetti,
+                    x: confettiContainer.clientWidth / 2,
+                    y: confettiContainer.clientHeight,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: -Math.random() * 15 - 5, // Initial upward velocity
+                    rotation: Math.random() * 360,
+                    rotationSpeed: (Math.random() - 0.5) * 20,
+                    opacity: 1
+                };
+                confettiPieces.push(piece);
+            }
+
+            function animate() {
+                let allOffScreen = true;
+                confettiPieces.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.2; // Gravity
+                    p.vx *= 0.99; // Air resistance
+                    p.rotation += p.rotationSpeed;
+                    
+                    if (p.y < confettiContainer.clientHeight) {
+                        allOffScreen = false;
+                    }
+
+                    p.element.style.transform = `translate(${p.x}px, ${p.y}px) rotate(${p.rotation}deg)`;
+                });
+
+                if (allOffScreen) {
+                    confettiContainer.innerHTML = '';
+                    cancelAnimationFrame(confettiAnimationId);
+                } else {
+                    confettiAnimationId = requestAnimationFrame(animate);
+                }
+            }
+            animate();
+        }
+
+
+        function showQuizResult() {
+            quizScreen.classList.remove('active');
+            resultScreen.classList.add('active');
+            const total = currentQuestions.length;
+            finalScore.textContent = `あなたのスコア: ${score} / ${total}`;
+
+            const percentage = total === 0 ? 0 : (score / total) * 100;
+            let comment = '';
+            if (percentage === 100 && total > 0) {
+                comment = '素晴らしい！満点です！🎉';
+                playSound('fanfare');
+                launchConfetti();
+            } else if (percentage >= 80) {
+                comment = 'よくできました！この調子で頑張りましょう！✨';
+            } else if (percentage >= 50) {
+                comment = 'もう少しです！復習して、さらに上を目指しましょう！👍';
+            } else {
+                comment = '頑張ろう！基礎をしっかり固めていきましょう！💪';
+            }
+            scoreComment.textContent = comment;
+            redoIncorrectButton.style.display = sessionIncorrectQuestionIds.length > 0 ? 'block' : 'none';
+        }
+
+        // --- Event Listeners ---
+        startButton.addEventListener('click', prepareQuiz);
+        nextButton.addEventListener('click', () => {
+            playSound('click');
+            currentQuestionIndex++;
+            loadQuestion();
+        });
+        settingsButton.addEventListener('click', () => {
+            startScreen.classList.remove('active');
+            settingsScreen.classList.add('active');
+        });
+        backToStartButton.addEventListener('click', () => {
+            settingsScreen.classList.remove('active');
+            startScreen.classList.add('active');
+        });
+        interruptButton.addEventListener('click', () => {
+            showModal('クイズ中断', 'クイズを中断しますか？現在の進捗は失われます。', () => {
+                quizScreen.classList.remove('active');
+                startScreen.classList.add('active');
+            });
+        });
+        restartButton.addEventListener('click', () => {
+            playSound('click');
+            resultScreen.classList.remove('active');
+            startScreen.classList.add('active');
+            if (confettiAnimationId) cancelAnimationFrame(confettiAnimationId);
+            confettiContainer.innerHTML = '';
+        });
+        redoIncorrectButton.addEventListener('click', () => {
+            playSound('click');
+            if (sessionIncorrectQuestionIds.length === 0) return;
+            currentQuestions = allQuestions.filter(q => sessionIncorrectQuestionIds.includes(q.id));
+            shuffleArray(currentQuestions);
+            currentQuestionIndex = 0;
+            score = 0;
+            answeredQuestions.clear();
+            sessionIncorrectQuestionIds = [];
+            resultScreen.classList.remove('active');
+            quizScreen.classList.add('active');
+            loadQuestion();
+        });
+        toggleExplanationButton.addEventListener('click', () => {
+            explanationContentElement.classList.toggle('show');
+            toggleExplanationButton.textContent = explanationContentElement.classList.contains('show') ? '解説▲' : '解説▼';
+        });
+        darkModeToggle.addEventListener('change', (e) => setDarkMode(e.target.checked));
+        themeColorCircles.forEach(circle => {
+            circle.addEventListener('click', () => {
+                themeColorCircles.forEach(c => c.classList.remove('selected'));
+                circle.classList.add('selected');
+                setThemeColor(circle.dataset.theme);
+            });
+        });
+        questionCountSelect.addEventListener('change', (e) => localStorage.setItem('questionCount', e.target.value));
+        showProgressToggle.addEventListener('change', (e) => {
+            showProgress = e.target.checked;
+            localStorage.setItem('showProgress', String(showProgress));
+            updateProgressBar();
+        });
+        enableSoundToggle.addEventListener('change', (e) => {
+            enableSound = e.target.checked;
+            localStorage.setItem('enableSound', String(enableSound));
+        });
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            darkModeToggle.checked = isDark;
+            
+            const savedTheme = localStorage.getItem('themeColor') || 'default';
+            document.querySelector(`.color-circle[data-theme="${savedTheme}"]`)?.classList.add('selected');
+            
+            applyColors(savedTheme, isDark);
+
+            const storedIncorrect = localStorage.getItem('incorrectQuestions');
+            if (storedIncorrect) {
+                try { incorrectQuestionIds = JSON.parse(storedIncorrect); } catch { incorrectQuestionIds = []; }
+            }
+            const storedCorrect = localStorage.getItem('correctlyAnsweredByLesson');
+            if (storedCorrect) {
+                try { correctlyAnsweredByLesson = JSON.parse(storedCorrect); } catch { correctlyAnsweredByLesson = {}; }
+            }
+
+
+            quizModeSelect.value = localStorage.getItem('lastSelectedMode') || 'random';
+            questionCountSelect.value = localStorage.getItem('questionCount') || '10';
+            showProgress = localStorage.getItem('showProgress') !== 'false';
+            showProgressToggle.checked = showProgress;
+            enableSound = localStorage.getItem('enableSound') !== 'false';
+            enableSoundToggle.checked = enableSound;
+
+            startScreen.classList.add('active');
+        });
+    </script>
+</body>
+</html>
