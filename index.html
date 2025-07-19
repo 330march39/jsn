@@ -399,9 +399,14 @@
             flex-grow: 1;
             text-align: center;
             font-size: 1.5rem;
+            margin: 0;
+            padding: 0 4rem; /* Add padding to avoid overlap */
         }
         #interruptButton {
-            flex-shrink: 0;
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
             padding: 8px 15px;
             font-size: 0.8rem;
         }
@@ -411,7 +416,7 @@
         
         .settings-option { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--button-border-default); flex-wrap: nowrap; gap: 1rem;}
         .settings-option:last-child { border-bottom: none; }
-        .settings-option-label { display: flex; flex-direction: column; align-items: flex-start; flex-grow: 1; }
+        .settings-option-label { display: flex; flex-direction: column; align-items: flex-start; flex-grow: 1; min-width: 0; }
         .settings-option-label label { font-size: 1.1rem; color: var(--text-primary); font-weight: 600; }
         .settings-option-label p { font-size: 0.85rem; color: var(--text-secondary); margin: 4px 0 0 0; text-align: left; }
         .theme-colors { display: flex; gap: 10px; }
@@ -826,6 +831,12 @@
             applyColors(themeName, document.body.classList.contains('dark-mode'));
         }
 
+        function switchScreen(screenToShow) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            screenToShow.classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
         async function prepareQuiz() {
             if (Tone.context.state !== 'running') await Tone.start();
             playSound('click');
@@ -872,9 +883,7 @@
             currentQuestions = sourcePool.slice(0, questionCount);
 
             if(currentQuestions.length > 0) {
-                startScreen.classList.remove('active');
-                quizScreen.classList.add('active');
-                resultScreen.classList.remove('active');
+                switchScreen(quizScreen);
                 loadQuestion();
             } else if (currentMode !== 'incorrect' && !isLessonMode) {
                  showModal('問題エラー', '選択されたモードの問題が見つかりませんでした。');
@@ -1063,8 +1072,7 @@
 
 
         function showQuizResult() {
-            quizScreen.classList.remove('active');
-            resultScreen.classList.add('active');
+            switchScreen(resultScreen);
             updateLessonDropdown();
             const total = currentQuestions.length;
             finalScore.textContent = `あなたのスコア: ${score} / ${total}`;
@@ -1108,24 +1116,16 @@
             currentQuestionIndex++;
             loadQuestion();
         });
-        settingsButton.addEventListener('click', () => {
-            startScreen.classList.remove('active');
-            settingsScreen.classList.add('active');
-        });
-        backToStartButton.addEventListener('click', () => {
-            settingsScreen.classList.remove('active');
-            startScreen.classList.add('active');
-        });
+        settingsButton.addEventListener('click', () => switchScreen(settingsScreen));
+        backToStartButton.addEventListener('click', () => switchScreen(startScreen));
         interruptButton.addEventListener('click', () => {
             showModal('クイズ中断', 'クイズを中断しますか？現在の進捗は失われます。', () => {
-                quizScreen.classList.remove('active');
-                startScreen.classList.add('active');
+                switchScreen(startScreen);
             });
         });
         restartButton.addEventListener('click', () => {
             playSound('click');
-            resultScreen.classList.remove('active');
-            startScreen.classList.add('active');
+            switchScreen(startScreen);
             if (confettiAnimationId) {
                 cancelAnimationFrame(confettiAnimationId);
                 confettiContainer.innerHTML = '';
@@ -1140,8 +1140,7 @@
             score = 0;
             answeredQuestions.clear();
             sessionIncorrectQuestionIds = [];
-            resultScreen.classList.remove('active');
-            quizScreen.classList.add('active');
+            switchScreen(quizScreen);
             loadQuestion();
         });
         toggleExplanationButton.addEventListener('click', () => {
@@ -1205,7 +1204,7 @@
             masteryModeToggle.checked = masteryMode;
 
             updateLessonDropdown();
-            startScreen.classList.add('active');
+            switchScreen(startScreen);
         });
     </script>
 </body>
