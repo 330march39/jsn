@@ -388,15 +388,20 @@
         .progress-text { font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-top: 10px; transition: color 0.3s ease; }
         .quiz-header {
             position: relative;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             padding-top: 1.5rem;
             padding-bottom: 0.5rem;
+            gap: 1rem;
+        }
+        .quiz-header .main-title {
+            flex-grow: 1;
+            text-align: center;
+            font-size: 1.5rem;
         }
         #interruptButton {
-            position: absolute;
-            top: 50%;
-            right: 0;
-            transform: translateY(-50%);
+            flex-shrink: 0;
             padding: 8px 15px;
             font-size: 0.8rem;
         }
@@ -404,15 +409,15 @@
         .confetti-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 0; }
         .confetti { position: absolute; width: 10px; height: 10px; background-color: #f06; opacity: 1; }
         
-        .settings-option { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--button-border-default); flex-wrap: wrap; }
+        .settings-option { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--button-border-default); flex-wrap: nowrap; gap: 1rem;}
         .settings-option:last-child { border-bottom: none; }
-        .settings-option-label { display: flex; flex-direction: column; align-items: flex-start; }
+        .settings-option-label { display: flex; flex-direction: column; align-items: flex-start; flex-grow: 1; }
         .settings-option-label label { font-size: 1.1rem; color: var(--text-primary); font-weight: 600; }
         .settings-option-label p { font-size: 0.85rem; color: var(--text-secondary); margin: 4px 0 0 0; text-align: left; }
         .theme-colors { display: flex; gap: 10px; }
         .color-circle { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s ease; }
         .color-circle.selected { border-color: var(--nav-button-bg); }
-        .toggle-switch { position: relative; display: inline-block; width: 60px; height: 34px; flex-shrink: 0; margin-left: 15px; }
+        .toggle-switch { position: relative; display: inline-block; width: 60px; height: 34px; flex-shrink: 0; margin-left: auto; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
         .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
@@ -422,6 +427,9 @@
         @media (min-width: 640px) {
             .options-grid {
                 grid-template-columns: 1fr 1fr;
+            }
+            .quiz-header .main-title {
+                font-size: 1.875rem; /* text-3xl */
             }
         }
     </style>
@@ -463,7 +471,7 @@
         <!-- クイズ画面 -->
         <div id="quizScreen" class="screen">
             <div class="quiz-header">
-                <h1 class="text-3xl font-extrabold main-title">情報処理入門クイズ</h1>
+                <h1 class="main-title">情報処理入門クイズ</h1>
                 <button id="interruptButton" class="nav-button">中断</button>
             </div>
             <div class="progress-container">
