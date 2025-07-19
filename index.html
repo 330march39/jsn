@@ -445,7 +445,7 @@
 
         <!-- スタート画面 -->
         <div id="startScreen" class="screen active">
-            <h1 class="text-3xl font-extrabold mb-6 main-title">情報処理入門</h1>
+            <h1 class="text-3xl font-bold mb-6 main-title">情報処理入門</h1>
             <p class="text-lg mb-4" style="color: var(--text-primary);">学習したいモードを選択してください。</p>
             <div class="mode-selection-dropdown">
                 <select id="quizModeSelect">
@@ -476,7 +476,7 @@
         <!-- クイズ画面 -->
         <div id="quizScreen" class="screen">
             <div class="quiz-header">
-                <h1 class="main-title">情報処理入門</h1>
+                <h1 class="main-title font-bold">情報処理入門</h1>
                 <button id="interruptButton" class="nav-button">中断</button>
             </div>
             <div class="progress-container">
@@ -507,7 +507,7 @@
 
         <!-- 結果画面 -->
         <div id="resultScreen" class="screen">
-            <h1 class="text-3xl font-extrabold mb-6 main-title">情報処理入門</h1>
+            <h1 class="text-3xl font-bold mb-6 main-title">情報処理入門</h1>
             <h2 class="text-2xl font-bold mb-4" style="color: var(--score-color);">クイズ結果</h2>
             <div id="finalScore" class="score-area"></div>
             <div id="scoreComment" class="score-comment"></div>
@@ -517,7 +517,7 @@
 
         <!-- 設定画面 -->
         <div id="settingsScreen" class="screen">
-            <h1 class="text-3xl font-extrabold mb-6 main-title">情報処理入門</h1>
+            <h1 class="text-3xl font-bold mb-6 main-title">情報処理入門</h1>
             <h2 class="text-2xl font-bold mb-4 main-title">設定</h2>
             <div class="settings-option">
                 <div class="settings-option-label">
@@ -595,6 +595,9 @@
     </div>
 
     <script>
+        // --- アプリ固有のID ---
+        const APP_PREFIX = 'INFO_PROCESSING_QUIZ_V1_';
+
         // --- 問題データ ---
         const allQuestions = [
             // --- 過去問題 ---
@@ -822,12 +825,12 @@
 
         function setDarkMode(isDark) {
             document.body.classList.toggle('dark-mode', isDark);
-            localStorage.setItem('darkMode', isDark);
-            applyColors(localStorage.getItem('themeColor') || 'default', isDark);
+            localStorage.setItem(APP_PREFIX + 'darkMode', isDark);
+            applyColors(localStorage.getItem(APP_PREFIX + 'themeColor') || 'default', isDark);
         }
 
         function setThemeColor(themeName) {
-            localStorage.setItem('themeColor', themeName);
+            localStorage.setItem(APP_PREFIX + 'themeColor', themeName);
             applyColors(themeName, document.body.classList.contains('dark-mode'));
         }
 
@@ -841,9 +844,9 @@
             if (Tone.context.state !== 'running') await Tone.start();
             playSound('click');
             currentMode = quizModeSelect.value;
-            localStorage.setItem('lastSelectedMode', currentMode);
+            localStorage.setItem(APP_PREFIX + 'lastSelectedMode', currentMode);
             questionCount = parseInt(questionCountSelect.value, 10);
-            localStorage.setItem('questionCount', questionCount);
+            localStorage.setItem(APP_PREFIX + 'questionCount', questionCount);
             
             currentQuestions = [];
             answeredQuestions.clear();
@@ -861,7 +864,7 @@
                 if (allLessonQuestions.length > 0 && correctlyAnsweredIds.length >= allLessonQuestions.length) {
                      showModal('レッスン完了！', 'このレッスンの全問題をマスターしました！進捗をリセットして、もう一度挑戦しますか？', () => {
                         correctlyAnsweredByLesson[currentMode] = [];
-                        localStorage.setItem('correctlyAnsweredByLesson', JSON.stringify(correctlyAnsweredByLesson));
+                        localStorage.setItem(APP_PREFIX + 'correctlyAnsweredByLesson', JSON.stringify(correctlyAnsweredByLesson));
                         updateLessonDropdown();
                         prepareQuiz();
                     });
@@ -967,9 +970,9 @@
             }
             
             answeredQuestions.add(questionId);
-            localStorage.setItem('incorrectQuestions', JSON.stringify(incorrectQuestionIds));
-            localStorage.setItem('correctlyAnsweredByLesson', JSON.stringify(correctlyAnsweredByLesson));
-            localStorage.setItem('consecutiveCorrectCounts', JSON.stringify(consecutiveCorrectCounts));
+            localStorage.setItem(APP_PREFIX + 'incorrectQuestions', JSON.stringify(incorrectQuestionIds));
+            localStorage.setItem(APP_PREFIX + 'correctlyAnsweredByLesson', JSON.stringify(correctlyAnsweredByLesson));
+            localStorage.setItem(APP_PREFIX + 'consecutiveCorrectCounts', JSON.stringify(consecutiveCorrectCounts));
 
 
             optionsGridElement.querySelectorAll('.option-button').forEach(button => {
@@ -1155,52 +1158,52 @@
                 setThemeColor(circle.dataset.theme);
             });
         });
-        questionCountSelect.addEventListener('change', (e) => localStorage.setItem('questionCount', e.target.value));
+        questionCountSelect.addEventListener('change', (e) => localStorage.setItem(APP_PREFIX + 'questionCount', e.target.value));
         showProgressToggle.addEventListener('change', (e) => {
             showProgress = e.target.checked;
-            localStorage.setItem('showProgress', String(showProgress));
+            localStorage.setItem(APP_PREFIX + 'showProgress', String(showProgress));
             updateProgressBar();
         });
         enableSoundToggle.addEventListener('change', (e) => {
             enableSound = e.target.checked;
-            localStorage.setItem('enableSound', String(enableSound));
+            localStorage.setItem(APP_PREFIX + 'enableSound', String(enableSound));
         });
         masteryModeToggle.addEventListener('change', (e) => {
             masteryMode = e.target.checked;
-            localStorage.setItem('masteryMode', String(masteryMode));
+            localStorage.setItem(APP_PREFIX + 'masteryMode', String(masteryMode));
         });
 
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
-            const isDark = localStorage.getItem('darkMode') === 'true';
+            const isDark = localStorage.getItem(APP_PREFIX + 'darkMode') === 'true';
+            document.body.classList.toggle('dark-mode', isDark);
             darkModeToggle.checked = isDark;
             
-            const savedTheme = localStorage.getItem('themeColor') || 'default';
+            const savedTheme = localStorage.getItem(APP_PREFIX + 'themeColor') || 'default';
             document.querySelector(`.color-circle[data-theme="${savedTheme}"]`)?.classList.add('selected');
             
             applyColors(savedTheme, isDark);
 
-            const storedIncorrect = localStorage.getItem('incorrectQuestions');
+            const storedIncorrect = localStorage.getItem(APP_PREFIX + 'incorrectQuestions');
             if (storedIncorrect) {
                 try { incorrectQuestionIds = JSON.parse(storedIncorrect); } catch { incorrectQuestionIds = []; }
             }
-            const storedCorrect = localStorage.getItem('correctlyAnsweredByLesson');
+            const storedCorrect = localStorage.getItem(APP_PREFIX + 'correctlyAnsweredByLesson');
             if (storedCorrect) {
                 try { correctlyAnsweredByLesson = JSON.parse(storedCorrect); } catch { correctlyAnsweredByLesson = {}; }
             }
-            const storedConsecutive = localStorage.getItem('consecutiveCorrectCounts');
+            const storedConsecutive = localStorage.getItem(APP_PREFIX + 'consecutiveCorrectCounts');
             if (storedConsecutive) {
                 try { consecutiveCorrectCounts = JSON.parse(storedConsecutive); } catch { consecutiveCorrectCounts = {}; }
             }
 
-
-            quizModeSelect.value = localStorage.getItem('lastSelectedMode') || 'random';
-            questionCountSelect.value = localStorage.getItem('questionCount') || '10';
-            showProgress = localStorage.getItem('showProgress') !== 'false';
+            quizModeSelect.value = localStorage.getItem(APP_PREFIX + 'lastSelectedMode') || 'random';
+            questionCountSelect.value = localStorage.getItem(APP_PREFIX + 'questionCount') || '10';
+            showProgress = localStorage.getItem(APP_PREFIX + 'showProgress') !== 'false';
             showProgressToggle.checked = showProgress;
-            enableSound = localStorage.getItem('enableSound') !== 'false';
+            enableSound = localStorage.getItem(APP_PREFIX + 'enableSound') !== 'false';
             enableSoundToggle.checked = enableSound;
-            masteryMode = localStorage.getItem('masteryMode') === 'true';
+            masteryMode = localStorage.getItem(APP_PREFIX + 'masteryMode') === 'true';
             masteryModeToggle.checked = masteryMode;
 
             updateLessonDropdown();
